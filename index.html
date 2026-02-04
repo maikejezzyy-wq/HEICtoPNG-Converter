@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conversor HEIC a PNG</title>
+    <script src="https://cdn.jsdelivr.net/npm/heic2any@0.0.4/dist/heic2any.min.js"></script>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1e1e1e;
+            color: #ffffff;
+            display: flex;
+            justify-content: center;
+            padding: 40px;
+        }
+        .app-card {
+            background-color: #2d2d2d;
+            padding: 30px;
+            border-radius: 12px;
+            box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+            text-align: center;
+            width: 100%;
+            max-width: 500px;
+        }
+        h1 { font-size: 1.5rem; margin-bottom: 20px; }
+        input[type="file"] { margin: 20px 0; color: #aaa; }
+        #status { font-size: 0.9rem; color: #888; margin-bottom: 15px; }
+        .btn-convert {
+            background-color: #cf0000;
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 6px;
+            font-weight: bold;
+            cursor: pointer;
+            width: 100%;
+            transition: 0.2s;
+        }
+        .btn-convert:hover { background-color: #388e3c; }
+        .btn-convert:disabled { background-color: #555; cursor: not-allowed; }
+        #results { margin-top: 25px; text-align: left; }
+        .file-row {
+            background: #3d3d3d;
+            padding: 10px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        .download-btn {
+            color: #81c784;
+            text-decoration: none;
+            font-size: 0.9rem;
+            border: 1px solid #81c784;
+            padding: 4px 12px;
+            border-radius: 4px;
+        }
+        .download-btn:hover { background-color: #81c784; color: #1e1e1e; }
+        /* Estas reglas solo se activan en pantallas de menos de 600px de ancho */
+@media (max-width: 600px) {
+    body {
+        padding: 0; /* Eliminamos el margen externo del cuerpo */
+    }
+
+    .app-card {
+        max-width: 100%;    /* Permitimos que ocupe todo el ancho */
+        width: 100%;        
+        border-radius: 0;   /* Quitamos los bordes redondeados para que pegue a las esquinas */
+        padding: 20px 10px; /* Ajustamos el espacio interno para aprovechar el lugar */
+        box-shadow: none;   /* Opcional: quitamos la sombra para un look más plano */
+    }
+}
+    </style>
+</head>
+<body>
+
+<div class="app-card">
+    <h1>CONVERSOR 🔗HEIC ➔ PNG 🖼️</h1>
+    <input type="file" id="heicFiles" accept=".heic" multiple>
+    <div id="status">Selecciona tus fotos para empezar</div>
+    <button id="startBtn" class="btn-convert">🔀 INICIAR CONVERSIÓN</button>
+    <div id="results"></div>
+</div>
+
+<script>
+    const fileInput = document.getElementById('heicFiles');
+    const startBtn = document.getElementById('startBtn');
+    const statusText = document.getElementById('status');
+    const resultsDiv = document.getElementById('results');
+
+    startBtn.addEventListener('click', async () => {
+        const files = Array.from(fileInput.files);
+        if (files.length === 0) return alert("Por favor, selecciona archivos .heic");
+
+        resultsDiv.innerHTML = "";
+        statusText.textContent = "Procesando... ⏳ (Esto puede tardar)";
+        startBtn.disabled = true;
+
+        for (const file of files) {
+            try {
+                // Convertimos el HEIC a un Blob (objeto de datos) PNG
+                const pngBlob = await heic2any({
+                    blob: file,
+                    toType: "image/png"
+                });
+
+                // Creamos una URL temporal para descargar el archivo convertido
+                const url = URL.createObjectURL(pngBlob);
+                const name = file.name.replace(/\.[^/.]+$/, "") + ".png";
+
+                const row = document.createElement('div');
+                row.className = 'file-row';
+                row.innerHTML = `
+                    <span>${name}</span>
+                    <a href="${url}" download="${name}" class="download-btn">Bajar</a>
+                `;
+                resultsDiv.appendChild(row);
+            } catch (e) {
+                console.error(e);
+                alert("Error con el archivo: " + file.name);
+            }
+        }
+        statusText.textContent = "¡Todo listo! ✅";
+        startBtn.disabled = false;
+    });
+</script>
+
+</body>
+</html>
